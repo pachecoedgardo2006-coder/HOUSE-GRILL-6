@@ -65,15 +65,15 @@ dashboard-restaurante/
 
 * **Persistencia Real:** Se prohíbe el uso de almacenamiento volátil del navegador (`localStorage`) para el flujo operativo; todas las operaciones interactúan directamente con la base de datos local a través de bloques `async/await` controlados.
 
+---
 
-================================================================================
- MANUAL DE INSTALACIÓN Y DESPLIEGUE LOCAL - RESIFOODS DASHBOARD
-================================================================================
+# MANUAL DE INSTALACIÓN Y DESPLIEGUE LOCAL - RESIFOODS DASHBOARD
+
 Proyecto: ResiFoods (Dashboard de Administración)
 Arquitectura: Monorepo (Backend: Node.js/Express | Frontend: Vite + Vanilla JS)
 Base de Datos: SQLite 3 (Nativa, sin ORM)
 Entorno de Destino: Windows 10 / 11
-================================================================================
+
 
 Este manual detalla los pasos requeridos para clonar, configurar, compilar e 
 instalar la aplicación en una máquina de producción (Windows) de forma limpia.
@@ -164,6 +164,7 @@ creará un script ejecutable automatizado:
 3. Hacer clic derecho > Editar, y pegar el siguiente script:
 
 --------------------------------------------------------------------------------
+```text
 @echo off
 title Servidor ResiFoods
 echo ==========================================
@@ -178,6 +179,7 @@ echo Abriendo Dashboard de Administracion...
 :: Abre el navegador por defecto en el puerto correspondiente
 start http://localhost:3000
 exit
+```
 --------------------------------------------------------------------------------
 
 4. Crear Acceso Directo:
@@ -196,4 +198,3 @@ financiera, inventario y pedidos reside en un solo archivo:
 - Se recomienda programar una copia automática de este archivo al finalizar la 
   jornada hacia un almacenamiento en la nube (Google Drive, OneDrive) o una 
   unidad USB externa para prevenir pérdidas por fallos de hardware.
-================================================================================
