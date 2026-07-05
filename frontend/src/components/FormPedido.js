@@ -16,16 +16,16 @@ export function FormPedido({ productosDisponibles, onGuardarPedido }) {
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Datos de Entrega</p>
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Nombre del Residente *</label>
-                    <input type="text" id="cliente_nombre" required autocomplete="off" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 transition">
+                    <input type="text" id="cliente_nombre" required autocomplete="off" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 transition uppercase">
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-slate-300 mb-1">Torre / Bloque *</label>
-                        <input type="text" id="torre_bloque" required autocomplete="off" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 transition">
+                        <input type="text" id="torre_bloque" required autocomplete="off" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 transition uppercase">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-300 mb-1">Apartamento *</label>
-                        <input type="text" id="apartamento" required autocomplete="off" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 transition">
+                        <input type="text" id="apartamento" required autocomplete="off" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 transition uppercase">
                     </div>
                 </div>
                 <div>
@@ -152,9 +152,9 @@ export function FormPedido({ productosDisponibles, onGuardarPedido }) {
             const pagaConVal = parseFloat(inputPagaCon.value) || 0;
 
             const data = {
-                cliente_nombre: form.querySelector('#cliente_nombre').value,
-                torre_bloque: form.querySelector('#torre_bloque').value,
-                apartamento: form.querySelector('#apartamento').value,
+                cliente_nombre: form.querySelector('#cliente_nombre').value.trim().toUpperCase(),
+                torre_bloque: form.querySelector('#torre_bloque').value.trim().toUpperCase(),
+                apartamento: form.querySelector('#apartamento').value.trim().toUpperCase(),
                 telefono: form.querySelector('#telefono').value,
                 tipo_pago: tipoPago,
                 paga_con: pagaConVal,

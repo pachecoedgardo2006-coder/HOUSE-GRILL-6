@@ -1,7 +1,7 @@
 import { conectarDB } from '../config/db.js';
 
 export const crearPedido = async (req, res) => {
-    const { 
+    let { 
         cliente_nombre, 
         torre_bloque, 
         apartamento, 
@@ -11,6 +11,11 @@ export const crearPedido = async (req, res) => {
         observaciones, 
         items 
     } = req.body;
+
+    // Normalizar a MAYÚSCULAS y limpiar espacios en los campos de texto críticos
+    if (cliente_nombre) cliente_nombre = cliente_nombre.trim().toUpperCase();
+    if (torre_bloque) torre_bloque = torre_bloque.trim().toUpperCase();
+    if (apartamento) apartamento = apartamento.trim().toUpperCase();
 
     if (!cliente_nombre || !torre_bloque || !apartamento || !telefono || !tipo_pago || !items || items.length === 0) {
         return res.status(400).json({ error: 'Información del residente, método de pago o productos incompletos.' });
@@ -66,7 +71,7 @@ export const crearPedido = async (req, res) => {
 
         const fechaISO = new Date().toISOString();
 
-        // Insertar cabecera con datos residenciales y financieros
+        // Insertar cabecera con datos residenciales ya estandarizados en MAYÚSCULAS
         const resultadoPedido = await db.run(
             `INSERT INTO pedidos (cliente_nombre, torre_bloque, apartamento, telefono, fecha, total, estado, tipo_pago, paga_con, cambio, observaciones) 
              VALUES (?, ?, ?, ?, ?, ?, 'Pendiente', ?, ?, ?, ?)`,
