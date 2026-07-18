@@ -14,6 +14,7 @@ El proyecto está diseñado bajo una arquitectura de ****Monorepo**** limpia y d
 -   ****Estilos:**** Tailwind CSS v4 con una estética unificada ****Urbana, Agresiva e Industrial de Parrilla al Carbón**** (Fondo oscuro extremo en `bg-slate-950`, bordes y separadores duros en `slate-900` / `border-slate-900`, acentuación cromática en Rojo Fuego `#e61919` y Mostaza Caliente `#ffb700`, tipografías pesadas y masivas `font-black` / `font-extrabold`, tracking cerrado/bloqueado `letter-spacing: -0.05em`, texto estrictamente en `uppercase` y acabados rectos `rounded-none`).
 -   ****HTTP Client:**** Axios (Configurado mediante una instancia centralizada orientada al prefijo `/api`).
 -   ****Backend:**** Node.js + Express Framework.
+-   ****Auth & Seguridad:**** ****JSON Web Tokens**** (JWT) para gestión de sesiones, ****bcryptjs**** para el hashing de contraseñas de administrador, y middlewares de autorización para protección de rutas API
 -   ****Base de Datos:**** SQLite 3 (Persistencia local integrada en un archivo `.db` controlado mediante consultas nativas por promesas, garantizando cero costos de mantenimiento en la nube).
 ---
 
@@ -23,63 +24,47 @@ El proyecto está diseñado bajo una arquitectura de ****Monorepo**** limpia y d
 dashboard-restaurante/
 ├── backend/
 │   ├── data/
-│   │   └── restaurante.db                 # Base de datos SQLite nativa (Auto-creada)
+│   │   └── restaurante.db                 # Base de datos SQLite (Persistencia local)
 │   ├── src/
 │   │   ├── config/
-│   │   │   └── db.js                      # Inicialización del esquema SQL y conexión por promesas
-│   │   ├── controllers/                   # Lógica de negocio y consultas CRUD atómicas
+│   │   │   └── db.js                      # Conexión y esquema SQL mediante promesas
+│   │   ├── controllers/                   # Lógica de negocio y gestión de peticiones
+│   │   │   ├── auth.controller.js         # Lógica de autenticación y generación de JWT
 │   │   │   ├── estadisticas.controller.js 
 │   │   │   ├── historial.controller.js    
 │   │   │   ├── inventario.controller.js   
-│   │   │   └── pedidos.controller.js      # Control operativo exclusivo de pedidos en cocina/reparto
-│   │   ├── routes/                        # Definición de endpoints de la API REST
-│   │   │   ├── estadisticas.routes.js     
-│   │   │   ├── historial.routes.js        
-│   │   │   ├── inventario.routes.js       
-│   │   │   └── pedidos.routes.js          
-│   │   └── app.js                         # Configuración de Express, middlewares globales y montaje de rutas
-│   ├── index.js                           # Punto de entrada principal y arranque del servidor HTTP
-│   ├── package.json                       # Dependencias del backend y scripts de inicio
-│   └── package-lock.json                  
+│   │   │   └── pedidos.controller.js      # Operaciones críticas de cocina/reparto
+│   │   ├── middleware/
+│   │   │   └── authMiddleware.js          # Protección de rutas mediante validación de token
+│   │   └── routes/                        # Definición de endpoints y rutas de la API
+│   │       ├── estadisticas.routes.js     
+│   │       ├── historial.routes.js        
+│   │       ├── inventario.routes.js       
+│   │       └── pedidos.routes.js          
+│   ├── app.js                             # Configuración de Express y middlewares globales
+│   ├── crear_admin.js                     # Script administrativo para creación de usuarios
+│   └── index.js                           # Punto de entrada y arranque del servidor
 │ 
 ├── frontend/
-│   ├── public/                            # Recursos estáticos globales accesibles directamente
-│   │   ├── favicon.svg                    
-│   │   └── icons.svg                      
+│   ├── public/                            # Recursos estáticos globales
 │   ├── src/
-│   │   ├── components/                    # Componentes modulares reutilizables del DOM           
-│   │   │   ├── FormPedido.js                             
-│   │   │   ├── TarjetaPedido.js           
-│   │   │   └── Toast.js      
-│   │   ├── services/                      # Configuraciones de clientes de red externos
-│   │   │   └── api.js                     # Instancia centralizada de Axios configurada con rutas relativas
-│   │   ├── views/                         # Secciones estructuradas bajo un esquema de carpetas modulares
-│   │   │   ├── estadisticas/
-│   │   │   │   ├── index.js               # Orquestador de la vista de analítica
-│   │   │   │   └── modules/
-│   │   │   │       ├── CardMetrica.js
-│   │   │   │       ├── GraficoProgreso.js
-│   │   │   │       └── SeccionAnalitica.js
-│   │   │   ├── historial/
-│   │   │   │   ├── index.js               # Orquestador del Historial (Maneja el nuevo formulario de fechas)
-│   │   │   │   └── modules/
-│   │   │   │       └── FilaHistorial.js
-│   │   │   ├── inventario/
-│   │   │   │   ├── index.js               # Orquestador de Inventario (Coordina tabla y formulario externo)
-│   │   │   │   └── modules/
-│   │   │   │       ├── FilaProducto.js
-│   │   │   │       └── FormInventario.js  
-│   │   │   └── pedidos/
-│   │   │       └── index.js               # Orquestador operativo de la cocina en vivo
-│   │   ├── main.js                        # Orquestador global de la SPA y router basado en Hash (#)
-│   │   └── style.css                      # Estilos globales y configuraciones de Tailwind CSS v4 (Dark Mystic)
-│   ├── index.html                         # Contenedor principal único para el montaje de la interfaz
-│   ├── package.json                       # Dependencias del frontend (Vite, Axios, Tailwind)
-│   └── vite.config.js                     
+│   │   ├── components/                    # Componentes modulares reutilizables
+│   │   ├── services/                      
+│   │   │   └── api.js                     # Instancia centralizada de Axios
+│   │   ├── views/                         # Secciones estructuradas de la SPA
+│   │   │   ├── login/
+│   │   │   │   └── index.js               # Orquestador del portal de acceso seguro
+│   │   │   ├── estadisticas/              # Módulo de analítica y métricas
+│   │   │   ├── historial/                 # Historial de transacciones
+│   │   │   ├── inventario/                # Gestión de stock y productos
+│   │   │   └── pedidos/                   # Operación de pedidos en vivo
+│   │   ├── main.js                        # Router centralizado (Hash-based) y orquestador
+│   │   └── style.css                      # Estilos globales y Tailwind CSS v4
+│   ├── index.html                         # Contenedor raíz de la aplicación
+│   └── vite.config.js                     # Configuración del empaquetador Vite
 │
-├── package.json                           # Configuración de scripts globales para la gestión del Monorepo
-├── package-lock.json                      
-└── README.md                              # Documentación técnica e ingeniería del sistema
+├── package.json                           # Scripts globales del Monorepo
+└── README.md                              # Documentación técnica del sistema
 
 ```
 
@@ -93,147 +78,22 @@ dashboard-restaurante/
 
 ---
 
+## Seguridad y Control de Acceso
+
+El sistema implementa una capa de protección estricta para el acceso al panel administrativo:
+
+1.  ****Protección de Rutas (SPA Router):**** El router centralizado en `main.js` intercepta toda la navegación. Si no existe un token válido en `sessionStorage`, el sistema bloquea cualquier intento de acceso a vistas privadas y redirige forzosamente al módulo de autenticación.
+2.  ****Middleware de Autorización:**** El backend protege todas las rutas críticas de la API. Toda solicitud a los recursos requiere un token JWT válido, asegurando que solo usuarios autenticados realicen consultas o modificaciones.
+3.  ****Gestión de Sesiones:**** El sistema permite el cierre de sesión seguro, eliminando inmediatamente el token del navegador y destruyendo la instancia de acceso, lo cual impide el reingreso sin credenciales.
+4.  ****Cifrado de Credenciales:**** Las contraseñas no se almacenan como texto plano; se utiliza el algoritmo `bcrypt` (factor de costo 10) para proteger la integridad de las credenciales de administrador ante cualquier acceso no autorizado a la base de datos.
+
+---
+
 ## 📝 Reglas de Diseño e Ingeniería
 
 * **Sin Frameworks Reactivos:** El frontend se rige por un ciclo de vida limpio manipulando nodos del DOM (`document.createElement`). Se limpian estrictamente los contenedores (`innerHTML = ''`) antes de nuevas instancias para evitar fugas de memoria y duplicidad de escuchadores de eventos.
 * **Persistencia Real:** Se prohíbe el uso de almacenamiento volátil del navegador (`localStorage`) para el flujo operativo; todas las operaciones interactúan directamente con la base de datos local a través de bloques `async/await` controlados.
 
----
-
-# 📖 Manual de Instalación y Despliegue Local
-
-* **Proyecto:** ResiFoods (Dashboard de Administración)
-* **Arquitectura:** Monorepo (Backend: Node.js/Express | Frontend: Vite + Vanilla JS)
-* **Base de Datos:** SQLite 3 (Nativa, sin ORM)
-* **Entorno de Destino:** Windows 10 / 11
-
-Este manual detalla los pasos requeridos para clonar, configurar, compilar e instalar la aplicación en una máquina de producción (Windows) de forma limpia.
-
-### 📋 Requisitos Previos en la Máquina Destino
-
-1. **Node.js** (Versión LTS estable recomendada: v22 o superior).
-* Descargar e instalar desde el sitio oficial.
-* Verificar instalación en la terminal (CMD o PowerShell) ejecutando:
-```bash
-node -v
-npm -v
-
-```
-
-2. Un **navegador web** moderno (Google Chrome o Microsoft Edge recomendado).
-
----
-
-### 🚀 Paso 1: Transferencia y Limpieza de Archivos
-
-1. Copiar la carpeta raíz del proyecto `dashboard-restaurante/` en el disco local de la máquina destino (Ejemplo recomendado: `C:\ResiFoods`).
-2. **IMPORTANTE:** Asegurarse de **NO** copiar las carpetas `node_modules/` del backend ni del frontend, ya que se generarán limpiamente en el destino.
-
----
-
-### ⚙️ Paso 2: Modificaciones y Configuraciones de Código (Producción)
-
-#### [A] Configuración del HTTP Client (Frontend)
-
-* **Ubicación:** `frontend/src/services/api.js`
-* **Acción:** La instancia centralizada de Axios debe apuntar a rutas relativas orientadas al prefijo `/api`. Asegurarse de que no apunte a un `localhost` estático con un puerto harcodeado en desarrollo.
-* **Ejemplo:**
-```javascript
-const api = axios.create({ baseURL: '/api' });
-
-```
-
-
-
-#### [B] Configuración del Servidor Express (Backend)
-
-* **Ubicación:** `backend/src/app.js`
-* **Acción:** Añadir los middlewares para servir el frontend compilado (Vite Build) de manera estática unificada. Colocar este bloque **ANTES** de definir las rutas de la API (`/api/pedidos`, `/api/inventario`, etc.).
-* **Código a integrar/verificar:**
-```javascript
-const path = require('path');
-
-// Servir archivos estáticos del build del frontend
-app.use(express.static(path.join(__dirname, '../../frontend/dist')));
-
-// Redirección de la raíz al index.html de la SPA
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
-});
-
-```
-
 
 
 ---
-
-### 📦 Paso 3: Instalación de Dependencias y Compilación (Build)
-
-Abrir una terminal (CMD o PowerShell) y ejecutar los siguientes comandos:
-
-1. **Compilar el Frontend** (Optimización de assets, CSS v4 y JS modular):
-```bash
-cd C:\ResiFoods\frontend
-npm install
-npm run build
-
-```
-
-
-> 💡 **Nota:** Esto creará la carpeta `frontend/dist/` con los archivos listos para ser servidos de manera eficiente por Express.
-
-
-2. **Instalar dependencias del Backend:**
-```bash
-cd C:\ResiFoods\backend
-npm install
-
-```
-
-
-> 💡 **Nota:** Al ejecutar el servidor por primera vez, el script de configuración `backend/src/config/db.js` creará automáticamente el archivo de la base de datos local `backend/data/restaurante.db` y sus respectivas tablas.
-
-
-
----
-
-### 🤖 Paso 4: Automatización del Arranque para el Usuario Final
-
-Para evitar que el administrador del local interactúe con la terminal, se creará un script ejecutable automatizado:
-
-1. En la raíz del proyecto (`C:\ResiFoods\`), crear un archivo de texto vacío.
-2. Renombrar el archivo a: `arrancar.bat` (asegurarse de cambiar la extensión `.txt`).
-3. Hacer clic derecho > **Editar**, y pegar el siguiente script:
-
-```batch
-@echo off
-title Servidor ResiFoods
-echo ==========================================
-echo       INICIANDO SISTEMA RESIFOODS        
-echo ==========================================
-cd C:\ResiFoods\backend
-:: Arranca el backend de forma minimizada en segundo plano
-start /min cmd /c "npm start"
-echo Esperando inicializacion de la Base de Datos...
-timeout /t 3 /nobreak > null
-echo Abriendo Dashboard de Administracion...
-:: Abre el navegador por defecto en el puerto correspondiente
-start http://localhost:3000
-exit
-
-```
-
-4. **Crear Acceso Directo:**
-* Clic derecho sobre `arrancar.bat` > **Enviar a** > **Escritorio (crear acceso directo)**.
-* Renombrar el acceso directo del escritorio a: `"Iniciar ResiFoods"`.
-* *(Opcional)* Cambiar el icono por el logo del restaurante en las propiedades del acceso directo.
-
-
-
----
-
-### 💾 Paso 5: Mantenimiento y Respaldo de Datos (Backups)
-
-Dado que la persistencia se realiza localmente en SQLite, toda la información financiera, inventario y pedidos reside en un solo archivo: `backend/data/restaurante.db`.
-
-* Se recomienda programar una copia automática de este archivo al finalizar la jornada hacia un almacenamiento en la nube (Google Drive, OneDrive) o una unidad USB externa para prevenir pérdidas por fallos de hardware.
