@@ -1,14 +1,10 @@
-import { renderEstadisticas } from './views/estadisticas/index.js';
-import { renderPedidos } from './views/pedidos/index.js';
-import { renderInventario } from './views/inventario/index.js';
-import { renderHistorial } from './views/historial/index.js';
-
 // Diccionario que mapea la ruta (hash) con su respectiva función generadora del DOM
+// Convertido a funciones que ejecutan importaciones dinámicas (Lazy Loading)
 const routes = {
-    '#estadisticas': renderEstadisticas,
-    '#pedidos': renderPedidos,
-    '#inventario': renderInventario,
-    '#historial': renderHistorial
+    '#estadisticas': () => import('./views/estadisticas/index.js').then(m => m.renderEstadisticas),
+    '#pedidos': () => import('./views/pedidos/index.js').then(m => m.renderPedidos),
+    '#inventario': () => import('./views/inventario/index.js').then(m => m.renderInventario),
+    '#historial': () => import('./views/historial/index.js').then(m => m.renderHistorial)
 };
 
 /**
@@ -22,7 +18,7 @@ async function router() {
     const currentHash = window.location.hash || '#estadisticas';
     
     // 2. Obtener la vista correspondiente o usar estadísticas como fallback seguro
-    const renderView = routes[currentHash] || routes['#estadisticas'];
+    const getViewLoader = routes[currentHash] || routes['#estadisticas'];
 
     try {
         // Renderizamos un esqueleto de carga temporal rápido y limpio en el DOM principal
@@ -33,6 +29,7 @@ async function router() {
         `;
 
         // 3. Ejecutar de forma asíncrona la inicialización de la vista (Axios Fetches internos)
+        const renderView = await getViewLoader();
         const viewNode = await renderView();
 
         // 4. Limpieza absoluta e inyección segura del nuevo nodo estructurado
