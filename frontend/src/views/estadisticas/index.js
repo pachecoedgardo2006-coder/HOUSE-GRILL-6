@@ -39,44 +39,37 @@ export async function renderEstadisticas() {
             const data = await api.get('/estadisticas');
 
             const seccionesConfig = [
-                {
-                    titulo: '💰 Gestión Financiera y Caja',
-                    descripcion: 'Auditoría de ingresos en efectivo y capitalización de flujos de pago.',
-                    metrics: [
-                        { titulo: 'Ingresos Totales (Caja)', valor: `$${(data.ingresos_totales || 0).toFixed(2)}`, icono: '🔥', color: 'text-red-500', bgIcono: 'bg-red-500/10 border-red-500/20 text-red-400' },
-                        { titulo: 'Ventas en Efectivo', valor: `$${(data.ingresos_efectivo || 0).toFixed(2)}`, icono: '💵', color: 'text-slate-200', bgIcono: 'bg-slate-900 border-slate-800 text-slate-400' },
-                        { titulo: 'Ventas por Transferencia', valor: `$${(data.ingresos_transferencia || 0).toFixed(2)}`, icono: '📱', color: 'text-amber-400', bgIcono: 'bg-amber-500/10 border-amber-500/20 text-amber-400' }
-                    ]
-                },
-                {
-                    titulo: '📦 Control Operativo y Logística',
-                    descripcion: 'Métricas de rendimiento de comandas y base asignada a repartidores.',
-                    metrics: [
-                        { titulo: 'Ticket Promedio', valor: `$${(data.ticket_promedio || 0).toFixed(2)}`, icono: '🎟️', color: 'text-amber-400', bgIcono: 'bg-amber-500/10 border-amber-500/20 text-amber-400' },
-                        { titulo: 'Pedidos Efectivos', valor: data.pedidos_entregados || 0, icono: '✅', color: 'text-red-500', bgIcono: 'bg-red-500/10 border-red-500/20 text-red-400' },
-                        { titulo: 'Cambio en Ruta (Domicilios)', valor: `$${(data.cambio_en_ruta || 0).toFixed(2)}`, icono: '🛵', color: 'text-slate-300', bgIcono: 'bg-slate-900 border-slate-800 text-slate-400' }
-                    ]
-                },
-                {
-                    titulo: '🏢 Mapeo de Demanda y Cancelaciones',
-                    descripcion: 'Análisis del comportamiento del conjunto residencial e incidencias operativas.',
-                    metrics: [
-                        { titulo: 'Bloque de Mayor Demanda', valor: data.zona_pico || 'N/A', icono: '🏢', color: 'text-slate-200', bgIcono: 'bg-slate-900 border-slate-800 text-slate-400' },
-                        { titulo: 'Hora Pico de Ventas', valor: data.hora_pico || 'N/A', icono: '⏰', color: 'text-amber-400', bgIcono: 'bg-amber-500/10 border-amber-500/20 text-amber-400' },
-                        { titulo: 'Órdenes Canceladas', valor: data.pedidos_cancelados || 0, icono: '❌', color: 'text-red-600', bgIcono: 'bg-red-950/20 border-red-900/30 text-red-500' }
-                    ]
-                }
+                { titulo: '💰 Gestión Financiera', descripcion: 'Auditoría de ingresos.', metrics: [{ titulo: 'Ingresos Totales', valor: `$${(data.ingresos_totales || 0).toFixed(2)}`, icono: '🔥', color: 'text-red-500', bgIcono: 'bg-red-500/10 border-red-500/20 text-red-400' }, { titulo: 'Ventas Efectivo', valor: `$${(data.ingresos_efectivo || 0).toFixed(2)}`, icono: '💵', color: 'text-slate-200', bgIcono: 'bg-slate-900 border-slate-800 text-slate-400' }, { titulo: 'Ventas Transferencia', valor: `$${(data.ingresos_transferencia || 0).toFixed(2)}`, icono: '📱', color: 'text-amber-400', bgIcono: 'bg-amber-500/10 border-amber-500/20 text-amber-400' }] },
+                { titulo: '📦 Control Operativo', descripcion: 'Métricas de comandas.', metrics: [{ titulo: 'Ticket Promedio', valor: `$${(data.ticket_promedio || 0).toFixed(2)}`, icono: '🎟️', color: 'text-amber-400', bgIcono: 'bg-amber-500/10 border-amber-500/20 text-amber-400' }, { titulo: 'Pedidos Efectivos', valor: data.pedidos_entregados || 0, icono: '✅', color: 'text-red-500', bgIcono: 'bg-red-500/10 border-red-500/20 text-red-400' }, { titulo: 'Cambio en Ruta', valor: `$${(data.cambio_en_ruta || 0).toFixed(2)}`, icono: '🛵', color: 'text-slate-300', bgIcono: 'bg-slate-900 border-slate-800 text-slate-400' }] },
+                { titulo: '🏢 Demanda', descripcion: 'Análisis de bloques.', metrics: [{ titulo: 'Bloque Mayor Demanda', valor: data.zona_pico || 'N/A', icono: '🏢', color: 'text-slate-200', bgIcono: 'bg-slate-900 border-slate-800 text-slate-400' }, { titulo: 'Hora Pico', valor: data.hora_pico || 'N/A', icono: '⏰', color: 'text-amber-400', bgIcono: 'bg-amber-500/10 border-amber-500/20 text-amber-400' }, { titulo: 'Órdenes Canceladas', valor: data.pedidos_cancelados || 0, icono: '❌', color: 'text-red-600', bgIcono: 'bg-red-950/20 border-red-900/30 text-red-500' }] }
             ];
 
-            seccionesConfig.forEach(sec => {
-                const nuevaSeccion = SeccionAnalitica({ titulo: sec.titulo, descripcion: sec.descripcion });
-                const gridCards = nuevaSeccion.querySelector('.id-grid-cards');
+            const tabContainer = document.createElement('div');
+            tabContainer.className = 'flex gap-2 border-b border-slate-900 mb-6 overflow-x-auto';
+            
+            seccionesConfig.forEach((sec, i) => {
+                const btn = document.createElement('button');
+                btn.className = `px-4 py-2 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all ${i === 0 ? 'border-red-600 text-white' : 'border-transparent text-slate-500 hover:text-slate-300'}`;
+                btn.textContent = sec.titulo.split(' ')[1];
+                
+                const secEl = SeccionAnalitica({ titulo: sec.titulo, descripcion: sec.descripcion });
+                if (i !== 0) secEl.classList.add('hidden');
+                
+                btn.onclick = () => {
+                    contenedorSecciones.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+                    tabContainer.querySelectorAll('button').forEach(b => b.className = b.className.replace('border-red-600 text-white', 'border-transparent text-slate-500'));
+                    secEl.classList.remove('hidden');
+                    btn.className = 'px-4 py-2 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all border-red-600 text-white';
+                };
 
-                sec.metrics.forEach(m => {
-                    gridCards.appendChild(CardMetrica(m));
-                });
-                contenedorSecciones.appendChild(nuevaSeccion);
+                sec.metrics.forEach(m => secEl.querySelector('.id-grid-cards').appendChild(CardMetrica(m)));
+                tabContainer.appendChild(btn);
+                contenedorSecciones.appendChild(secEl);
             });
+
+            contenedorSecciones.prepend(tabContainer);
+
+        
 
             // Inyecciones de Gráficos de Progreso con paletas de los anuncios de House Grill 6
             gridGraficos.appendChild(GraficoProgreso({

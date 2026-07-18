@@ -47,11 +47,8 @@ dashboard-restaurante/
 │   │   ├── favicon.svg                    
 │   │   └── icons.svg                      
 │   ├── src/
-│   │   ├── components/                    # Componentes modulares reutilizables del DOM
-│   │   │   ├── UI/
-│   │   │   │   └── Loader.js             
-│   │   │   ├── FormPedido.js              
-│   │   │   ├── Sidebar.js                 
+│   │   ├── components/                    # Componentes modulares reutilizables del DOM           
+│   │   │   ├── FormPedido.js                             
 │   │   │   ├── TarjetaPedido.js           
 │   │   │   └── Toast.js      
 │   │   ├── services/                      # Configuraciones de clientes de red externos
