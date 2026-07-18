@@ -1,6 +1,7 @@
 // Diccionario que mapea la ruta (hash) con su respectiva función generadora del DOM
 // Convertido a funciones que ejecutan importaciones dinámicas (Lazy Loading)
 const routes = {
+    '#login': () => import('./views/login/index.js').then(m => m.renderLogin),
     '#estadisticas': () => import('./views/estadisticas/index.js').then(m => m.renderEstadisticas),
     '#pedidos': () => import('./views/pedidos/index.js').then(m => m.renderPedidos),
     '#inventario': () => import('./views/inventario/index.js').then(m => m.renderInventario),
@@ -14,8 +15,31 @@ async function router() {
     const appContainer = document.getElementById('app');
     if (!appContainer) return;
 
-    // 1. Capturar el hash actual de la URL. Si está vacío, por defecto va a estadísticas.
+    const sidebar = document.getElementById('sidebar');
+
+    // 1. Obtener el token y la ruta actual
+    const token = sessionStorage.getItem('token');
     const currentHash = window.location.hash || '#estadisticas';
+
+    if (currentHash === '#login') {
+        sidebar.classList.add('hidden'); // Ocultar
+        appContainer.parentElement.classList.remove('flex'); // Ajustar layout
+    } else {
+        sidebar.classList.remove('hidden'); // Mostrar
+        appContainer.parentElement.classList.add('flex'); // Restaurar layout
+    }
+
+    // Si no hay token y no intenta entrar a login, forzar redirección
+    if (!token && currentHash !== '#login') {
+        window.location.hash = '#login';
+        return;
+    }
+
+    // Si tiene token e intenta entrar a login, redirigir a inicio
+    if (token && currentHash === '#login') {
+        window.location.hash = '#estadisticas';
+        return;
+    }
     
     // 2. Obtener la vista correspondiente o usar estadísticas como fallback seguro
     const getViewLoader = routes[currentHash] || routes['#estadisticas'];

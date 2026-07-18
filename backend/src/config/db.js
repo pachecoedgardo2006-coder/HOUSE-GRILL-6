@@ -64,6 +64,15 @@ export async function inicializarDB() {
             );
         `);
 
+        // 4. Tabla de Usuarios
+        await db.exec(`
+            CREATE TABLE IF NOT EXISTS usuarios (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL
+            );`
+        );
+
         console.log('--- Base de datos indexada e inicializada correctamente (V2) ---');
     } catch (error) {
         console.error('Error al inicializar la base de datos:', error);

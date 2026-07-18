@@ -1,19 +1,28 @@
-// frontend/src/services/api.js
 import axios from 'axios';
 
-// Configuración de la instancia centralizada de Axios
 const api = axios.create({
-    baseURL: 'http://localhost:3000/api', // Ajusta el puerto
+    baseURL: 'http://localhost:3000/api',
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json'
     }
 });
 
-// Manejo global de errores
+// Interceptor de petición: Adjunta el token si existe
+api.interceptors.request.use((config) => {
+    const token = sessionStorage.getItem('token');
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+});
+
+// Interceptor de respuesta: Unificado para manejar éxito, errores y redirección 401
 api.interceptors.response.use(
-    (response) => response.data, // Retorna directamente la data para limpiar los componentes
+    (response) => response.data,
     (error) => {
+        if (error.response?.status === 401) {
+            sessionStorage.removeItem('token'); // Limpiamos por seguridad
+            window.location.hash = '#login';
+        }
         console.error('Error en la petición API:', error.response?.data || error.message);
         return Promise.reject(error);
     }
