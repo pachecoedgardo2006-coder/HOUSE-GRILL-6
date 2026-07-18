@@ -7,28 +7,34 @@ import { conectarDB } from '../config/db.js';
  */
 export const obtenerHistorialAnalitico = async (req, res) => {
     try {
-        const { desde, hasta } = req.query;
+        const { desde, hasta, ubicacion, estado } = req.query;
         const db = await conectarDB();
         
-        // Base de la consulta: Solo estados cerrados
         let sql = `
-            SELECT id, cliente_nombre, telefono, torre_bloque, apartamento, total, tipo_pago, paga_con, cambio, estado, fecha, observaciones
+            SELECT id, cliente_nombre, telefono, torre_bloque, apartamento, total, tipo_pago, paga_con, cambio, estado, fecha 
             FROM pedidos 
             WHERE estado IN ('Entregado', 'Cancelado')
         `;
         const params = [];
 
-        // Si se proporcionan fechas, se anexa el filtro dinámico a la consulta
+        // Solo agregar filtros si tienen valor
         if (desde && hasta) {
             sql += ` AND date(fecha, 'localtime') BETWEEN date(?) AND date(?)`;
             params.push(desde, hasta);
+        }
+        if (ubicacion) {
+            sql += ` AND torre_bloque = ?`;
+            params.push(ubicacion);
+        }
+        if (estado) {
+            sql += ` AND estado = ?`;
+            params.push(estado);
         }
 
         sql += ` ORDER BY fecha DESC`;
 
         const pedidosArchivados = await db.all(sql, params);
         
-        // Adjuntar los ítems correspondientes a cada orden
         for (const pedido of pedidosArchivados) {
             pedido.items = await db.all(`
                 SELECT dp.cantidad, dp.precio_historico, p.nombre 
@@ -40,8 +46,19 @@ export const obtenerHistorialAnalitico = async (req, res) => {
 
         await db.close();
         res.json(pedidosArchivados);
-
     } catch (error) {
-        res.status(500).json({ error: 'Error al consultar el historial analítico: ' + error.message });
+        res.status(500).json({ error: 'Error al consultar el historial: ' + error.message });
+    }
+};
+
+export const obtenerTorresDisponibles = async (req, res) => {
+    try {
+        const db = await conectarDB();
+        // SELECT DISTINCT obtiene valores únicos de la columna torre_bloque
+        const torres = await db.all(`SELECT DISTINCT torre_bloque FROM pedidos WHERE torre_bloque IS NOT NULL ORDER BY torre_bloque ASC`);
+        await db.close();
+        res.json(torres);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener torres: ' + error.message });
     }
 };
