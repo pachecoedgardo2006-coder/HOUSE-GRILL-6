@@ -10,15 +10,30 @@ import { login } from './controllers/auth.controller.js';
 import { verificarToken } from './middleware/authMiddleware.js';
 
 const app = express();
+
+// Configuración de CORS
 const corsOptions = {
-  origin: 'https://housegrill6.netlify.app', // Tu dominio exacto de Netlify
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: 'https://housegrill6.netlify.app',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
   credentials: true
 };
 
+// Middleware de CORS manual para asegurar respuesta a preflight
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://housegrill6.netlify.app');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 // Middlewares globales
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // Inyección de Endpoints de la API REST
