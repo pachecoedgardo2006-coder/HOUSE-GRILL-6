@@ -1,9 +1,14 @@
 import pkg from 'pg';
 const { Pool } = pkg;
 
-// Configura tu cadena de conexión aquí
-// IMPORTANTE: Sustituye [YOUR-PASSWORD] por tu contraseña real de base de datos
 const connectionString = process.env.DATABASE_URL;
+
+// Debug: Esto imprimirá en los LOGS de Vercel si la variable llega vacía
+if (!connectionString) {
+  console.error('❌ ERROR: DATABASE_URL no está definida en las variables de entorno de Vercel');
+} else {
+  console.log('✅ DATABASE_URL cargada correctamente');
+}
 
 const pool = new Pool({
   connectionString: connectionString,
@@ -11,6 +16,8 @@ const pool = new Pool({
     rejectUnauthorized: false
   }
 });
+
+// ... resto de tu código
 
 // Esta función permite realizar consultas desde tus controladores
 export async function query(text, params) {
