@@ -13,7 +13,7 @@ const app = express();
 
 // Middlewares globales
 app.use(cors({
-    origin: ['https://tu-frontend-en-netlify.netlify.app'], 
+    origin: ['https://housegrill6.netlify.app/', 'http://localhost:5173'], 
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
