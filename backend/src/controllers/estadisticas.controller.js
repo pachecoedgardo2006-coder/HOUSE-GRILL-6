@@ -1,34 +1,32 @@
-// backend/src/controllers/estadisticas.controller.js
-import { conectarDB } from '../config/db.js';
+import { query } from '../config/db.js';
 
 export const obtenerEstadisticas = async (req, res) => {
-    let db;
     try {
-        db = await conectarDB();
-
         // 1. Resumen Financiero Expandido (Solo pedidos efectivos computan caja)
-        const resumenFinanciero = await db.get(`
+        const resumenFinancieroResult = await query(`
             SELECT 
-                SUM(total) as ingresos_totales,
-                AVG(total) as ticket_promedio,
-                COUNT(id) as total_pedidos,
-                SUM(CASE WHEN tipo_pago = 'Efectivo' THEN total ELSE 0 END) as ingresos_efectivo,
-                SUM(CASE WHEN tipo_pago = 'Transferencia' THEN total ELSE 0 END) as ingresos_transferencia
+                COALESCE(SUM(total), 0)::float as ingresos_totales,
+                COALESCE(AVG(total), 0)::float as ticket_promedio,
+                COUNT(id)::int as total_pedidos,
+                COALESCE(SUM(CASE WHEN tipo_pago = 'Efectivo' THEN total ELSE 0 END), 0)::float as ingresos_efectivo,
+                COALESCE(SUM(CASE WHEN tipo_pago = 'Transferencia' THEN total ELSE 0 END), 0)::float as ingresos_transferencia
             FROM pedidos 
             WHERE estado = 'Entregado'
         `);
+        const resumenFinanciero = resumenFinancieroResult.rows[0];
 
         // 2. Conteo de Estados y Logística de Cambio en Ruta (Pendientes o En preparación)
-        const logisticaYEstados = await db.get(`
+        const logisticaYEstadosResult = await query(`
             SELECT 
-                COUNT(CASE WHEN estado = 'Entregado' THEN 1 END) as entregados,
-                COUNT(CASE WHEN estado = 'Cancelado' THEN 1 END) as cancelados,
-                SUM(CASE WHEN estado IN ('Pendiente', 'En preparación') AND tipo_pago = 'Efectivo' THEN cambio ELSE 0 END) as cambio_en_ruta
+                COUNT(CASE WHEN estado = 'Entregado' THEN 1 END)::int as entregados,
+                COUNT(CASE WHEN estado = 'Cancelado' THEN 1 END)::int as cancelados,
+                COALESCE(SUM(CASE WHEN estado IN ('Pendiente', 'En preparación') AND tipo_pago = 'Efectivo' THEN cambio ELSE 0 END), 0)::float as cambio_en_ruta
             FROM pedidos
         `);
+        const logisticaYEstados = logisticaYEstadosResult.rows[0];
 
         // 3. Zona (Torre / Bloque) con mayor demanda (Para la tarjeta principal)
-        const zonaPico = await db.get(`
+        const zonaPicoResult = await query(`
             SELECT torre_bloque, COUNT(id) as cantidad
             FROM pedidos
             WHERE estado != 'Cancelado'
@@ -36,11 +34,12 @@ export const obtenerEstadisticas = async (req, res) => {
             ORDER BY cantidad DESC
             LIMIT 1
         `);
+        const zonaPico = zonaPicoResult.rows[0];
 
         // 4. Hora pico de pedidos
-        const horaPico = await db.get(`
+        const horaPicoResult = await query(`
             SELECT 
-                SUBSTR(datetime(fecha, 'localtime'), 12, 2) as hora, 
+                TO_CHAR(fecha AT TIME ZONE 'America/Bogota', 'HH24') as hora, 
                 COUNT(id) as cantidad
             FROM pedidos
             WHERE estado != 'Cancelado'
@@ -48,48 +47,53 @@ export const obtenerEstadisticas = async (req, res) => {
             ORDER BY cantidad DESC
             LIMIT 1
         `);
+        const horaPico = horaPicoResult.rows[0];
 
         // 5. Top 5 de productos más vendidos
-        const productosMasVendidos = await db.all(`
-            SELECT p.nombre, SUM(dp.cantidad) as total_vendido
+        const productosMasVendidosResult = await query(`
+            SELECT p.nombre, SUM(dp.cantidad)::int as total_vendido
             FROM detalle_pedidos dp
             JOIN productos p ON dp.producto_id = p.id
             JOIN pedidos ped ON dp.pedido_id = ped.id
             WHERE ped.estado != 'Cancelado'
-            GROUP BY p.id
+            GROUP BY p.id, p.nombre
             ORDER BY total_vendido DESC
             LIMIT 5
         `);
+        const productosMasVendidos = productosMasVendidosResult.rows;
 
         // 6. Top 5 de Clientes Frecuentes
-        const clientesFrecuentes = await db.all(`
-            SELECT cliente_nombre, COUNT(id) as total_pedidos
+        const clientesFrecuentesResult = await query(`
+            SELECT cliente_nombre, COUNT(id)::int as total_pedidos
             FROM pedidos
             WHERE estado != 'Cancelado'
             GROUP BY cliente_nombre
             ORDER BY total_pedidos DESC
             LIMIT 5
         `);
+        const clientesFrecuentes = clientesFrecuentesResult.rows;
 
-        // --- NUEVAS CONSULTAS COMPLEMENTARIAS ---
+        // --- CONSULTAS COMPLEMENTARIAS ---
 
         // 7. Ranking General de todas las Torres/Bloques para el nuevo gráfico
-        const rankingTorres = await db.all(`
-            SELECT torre_bloque, COUNT(id) as total_pedidos
+        const rankingTorresResult = await query(`
+            SELECT torre_bloque, COUNT(id)::int as total_pedidos
             FROM pedidos
             WHERE estado != 'Cancelado'
             GROUP BY torre_bloque
             ORDER BY total_pedidos DESC
         `);
+        const rankingTorres = rankingTorresResult.rows;
 
         // 8. Alerta de Stock Crítico (Productos con 10 o menos unidades disponibles)
-        const stockCritico = await db.all(`
+        const stockCriticoResult = await query(`
             SELECT nombre, stock
             FROM productos
             WHERE stock <= 10
             ORDER BY stock ASC
             LIMIT 5
         `);
+        const stockCritico = stockCriticoResult.rows;
 
         // Formateo elegante de hora militar a legible
         let horaLegible = 'N/A';
@@ -123,7 +127,5 @@ export const obtenerEstadisticas = async (req, res) => {
 
     } catch (error) {
         res.status(500).json({ error: 'Error al generar las estadísticas: ' + error.message });
-    } finally {
-        if (db) await db.close();
     }
 };

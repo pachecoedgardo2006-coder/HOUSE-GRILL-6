@@ -1,11 +1,9 @@
-import { conectarDB } from '../config/db.js';
+import { query } from '../config/db.js';
 
 export const obtenerProductos = async (req, res) => {
     try {
-        const db = await conectarDB();
-        const productos = await db.all('SELECT * FROM productos ORDER BY nombre ASC');
-        await db.close();
-        res.json(productos);
+        const resultado = await query('SELECT * FROM productos ORDER BY nombre ASC');
+        res.json(resultado.rows);
     } catch (error) {
         res.status(500).json({ error: 'Error al obtener el inventario: ' + error.message });
     }
@@ -14,17 +12,16 @@ export const obtenerProductos = async (req, res) => {
 export const crearProducto = async (req, res) => {
     const { nombre, descripcion, precio, stock } = req.body;
     if (!nombre || precio === undefined || stock === undefined) {
-        return res.status(400).json({ error: 'Faltan campos obligatorios (nombre, precio, stock)' });
+        return res.status(400).json({ error: 'Faltan campos obligatorios' });
     }
 
     try {
-        const db = await conectarDB();
-        const resultado = await db.run(
-            'INSERT INTO productos (nombre, descripcion, precio, stock) VALUES (?, ?, ?, ?)',
-            [nombre, descripcion, precio, stock]
-        );
-        await db.close();
-        res.status(201).json({ id: resultado.lastID, nombre, descripcion, precio, stock });
+        const sql = 'INSERT INTO productos (nombre, descripcion, precio, stock) VALUES ($1, $2, $3, $4) RETURNING id';
+        const valores = [nombre, descripcion, precio, stock];
+        
+        const resultado = await query(sql, valores);
+        
+        res.status(201).json({ id: resultado.rows[0].id, nombre, descripcion, precio, stock });
     } catch (error) {
         res.status(500).json({ error: 'Error al añadir producto: ' + error.message });
     }
@@ -35,27 +32,24 @@ export const editarProducto = async (req, res) => {
     const { nombre, descripcion, precio, stock } = req.body;
 
     try {
-        const db = await conectarDB();
-        const productoExiste = await db.get('SELECT id FROM productos WHERE id = ?', [id]);
-        
-        if (!productoExiste) {
-            await db.close();
+        const productoExisteResult = await query('SELECT id FROM productos WHERE id = $1', [id]);
+
+        if (productoExisteResult.rows.length === 0) {
             return res.status(404).json({ error: 'Producto no encontrado' });
         }
 
-        await db.run(
+        await query(
             `UPDATE productos 
-             SET nombre = COALESCE(?, nombre), 
-                 descripcion = COALESCE(?, descripcion), 
-                 precio = COALESCE(?, precio), 
-                 stock = COALESCE(?, stock) 
-             WHERE id = ?`,
+             SET nombre = COALESCE($1, nombre), 
+                 descripcion = COALESCE($2, descripcion), 
+                 precio = COALESCE($3, precio), 
+                 stock = COALESCE($4, stock) 
+             WHERE id = $5`,
             [nombre, descripcion, precio, stock, id]
         );
 
-        const productoActualizado = await db.get('SELECT * FROM productos WHERE id = ?', [id]);
-        await db.close();
-        res.json(productoActualizado);
+        const productoActualizadoResult = await query('SELECT * FROM productos WHERE id = $1', [id]);
+        res.json(productoActualizadoResult.rows[0]);
     } catch (error) {
         res.status(500).json({ error: 'Error al actualizar producto: ' + error.message });
     }

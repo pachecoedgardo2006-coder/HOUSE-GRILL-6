@@ -8,7 +8,7 @@ export function FilaProducto({ producto, onEditar }) {
         <td class="py-3 px-4 font-mono text-xs text-slate-500 group-hover:text-mostaza-caliente transition-colors">#${producto.id}</td>
         <td class="py-3 px-4 font-black text-white uppercase tracking-tight">${producto.nombre}</td>
         <td class="py-3 px-4 text-xs text-slate-400 max-w-xs truncate uppercase font-semibold tracking-wide">${producto.descripcion || '-'}</td>
-        <td class="py-3 px-4 font-mono font-black text-slate-200">$${producto.precio.toFixed(2)}</td>
+        <td class="py-3 px-4 font-mono font-black text-slate-200">$${Number(producto.precio).toFixed(2)}</td>
         <td class="py-3 px-4">
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-none text-[10px] font-black uppercase tracking-wider ${
                 esStockBajo ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-slate-900 text-mostaza-caliente border border-slate-800'
