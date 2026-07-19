@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import app from './src/app.js';
 
 // Para Vercel, simplemente exportamos la app configurada.
