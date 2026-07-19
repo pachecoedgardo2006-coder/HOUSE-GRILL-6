@@ -12,7 +12,11 @@ import { verificarToken } from './middleware/authMiddleware.js';
 const app = express();
 
 // Middlewares globales
-app.use(cors());
+app.use(cors({
+    origin: ['https://tu-frontend-en-netlify.netlify.app'], 
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
 app.use(express.json());
 
 // Inyección de Endpoints de la API REST
