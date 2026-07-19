@@ -18,6 +18,7 @@ const corsOptions = {
 
 // Middlewares globales
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // Inyección de Endpoints de la API REST
