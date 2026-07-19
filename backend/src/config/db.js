@@ -3,7 +3,7 @@ const { Pool } = pkg;
 
 // Configura tu cadena de conexión aquí
 // IMPORTANTE: Sustituye [YOUR-PASSWORD] por tu contraseña real de base de datos
-const connectionString = 'postgresql://postgres:1044618095Edgardo.@db.ipmhlsyokeojfusxcypo.supabase.co:5432/postgres';
+const connectionString = process.env.DATABASE_URL;
 
 const pool = new Pool({
   connectionString: connectionString,

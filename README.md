@@ -15,7 +15,7 @@ El proyecto está diseñado bajo una arquitectura de ****Monorepo**** limpia y d
 -   ****HTTP Client:**** Axios (Configurado mediante una instancia centralizada orientada al prefijo `/api`).
 -   ****Backend:**** Node.js + Express Framework.
 -   ****Auth & Seguridad:**** ****JSON Web Tokens**** (JWT) para gestión de sesiones, ****bcryptjs**** para el hashing de contraseñas de administrador, y middlewares de autorización para protección de rutas API
--   ****Base de Datos:**** SQLite 3 (Persistencia local integrada en un archivo `.db` controlado mediante consultas nativas por promesas, garantizando cero costos de mantenimiento en la nube).
+-   ****Base de Datos****: Supabase (PostgreSQL) para escalabilidad, persistencia en la nube y gestión robusta de tipos de datos, reemplazando la arquitectura local anterior.
 ---
 
 ## 📂 Arquitectura del Sistema
@@ -23,8 +23,6 @@ El proyecto está diseñado bajo una arquitectura de ****Monorepo**** limpia y d
 ```text
 dashboard-restaurante/
 ├── backend/
-│   ├── data/
-│   │   └── restaurante.db                 # Base de datos SQLite (Persistencia local)
 │   ├── src/
 │   │   ├── config/
 │   │   │   └── db.js                      # Conexión y esquema SQL mediante promesas
@@ -92,7 +90,7 @@ El sistema implementa una capa de protección estricta para el acceso al panel a
 ## 📝 Reglas de Diseño e Ingeniería
 
 * **Sin Frameworks Reactivos:** El frontend se rige por un ciclo de vida limpio manipulando nodos del DOM (`document.createElement`). Se limpian estrictamente los contenedores (`innerHTML = ''`) antes de nuevas instancias para evitar fugas de memoria y duplicidad de escuchadores de eventos.
-* **Persistencia Real:** Se prohíbe el uso de almacenamiento volátil del navegador (`localStorage`) para el flujo operativo; todas las operaciones interactúan directamente con la base de datos local a través de bloques `async/await` controlados.
+* **Persistencia en la Nube:** Se utiliza Supabase como fuente única de verdad para el flujo operativo; todas las operaciones interactúan directamente con PostgreSQL a través de la API, garantizando sincronización y consistencia de datos en tiempo real.
 
 
 
