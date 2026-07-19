@@ -10,13 +10,14 @@ import { login } from './controllers/auth.controller.js';
 import { verificarToken } from './middleware/authMiddleware.js';
 
 const app = express();
+const corsOptions = {
+  origin: 'https://housegrill6.netlify.app', // Tu dominio exacto de Netlify
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+};
 
 // Middlewares globales
-app.use(cors({
-    origin: ['https://housegrill6.netlify.app/', 'http://localhost:5173'], 
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true
-}));
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Inyección de Endpoints de la API REST
