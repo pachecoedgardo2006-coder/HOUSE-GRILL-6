@@ -10,6 +10,8 @@ if (!connectionString) {
   console.log('✅ DATABASE_URL cargada correctamente');
 }
 
+console.log("URL de conexión detectada (sin contraseña):", connectionString.replace(/:[^:@]+@/, ':***@'));
+
 const pool = new Pool({
   connectionString: connectionString,
   ssl: {
