@@ -38,11 +38,11 @@ app.use(cors({
 app.use(express.json());
 
 // Inyección de Endpoints de la API REST
-app.post('/api/auth/login', login);
-app.use('/api/inventario', verificarToken, inventarioRoutes);
-app.use('/api/pedidos', verificarToken, pedidosRoutes);
-app.use('/api/historial', verificarToken, historialRoutes);
-app.use('/api/estadisticas', verificarToken, estadisticasRoutes);
+app.post('/auth/login', login);
+app.use('/inventario', verificarToken, inventarioRoutes);
+app.use('/pedidos', verificarToken, pedidosRoutes);
+app.use('/historial', verificarToken, historialRoutes);
+app.use('/estadisticas', verificarToken, estadisticasRoutes);
 
 // Manejo global de rutas no encontradas
 app.use((req, res) => {
