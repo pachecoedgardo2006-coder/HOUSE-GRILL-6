@@ -21,7 +21,8 @@ const pool = new Pool({
   connectionString: connectionString,
   ssl: {
     rejectUnauthorized: false
-  }
+  },
+  family: 4
 });
 
 export async function query(text, params) {
