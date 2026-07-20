@@ -1,7 +1,14 @@
 import pkg from 'pg';
 import dotenv from 'dotenv';
-import net from 'net';
-dotenv.config();
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Sube desde src/config hasta la raíz absoluta de HOUSE-GRILL-6
+const envPath = path.resolve(__dirname, '../../../.env');
+dotenv.config({ path: envPath });
 
 const { Pool } = pkg;
 
@@ -11,9 +18,6 @@ if (!connectionString) {
   console.error('❌ ERROR: DATABASE_URL no está definida en las variables de entorno');
 } else {
   console.log('✅ DATABASE_URL cargada correctamente');
-}
-
-if (connectionString) {
   console.log("URL de conexión detectada:", connectionString.replace(/:[^:@]+@/, ':***@'));
 }
 
@@ -21,13 +25,22 @@ const pool = new Pool({
   connectionString: connectionString,
   ssl: {
     rejectUnauthorized: false
-  },
-  // Capturamos el host y puerto de la conexión para asignarle la familia IPv4 correctamente
-  stream: (options) => {
-    options.family = 4;
-    return net.createConnection(options);
   }
 });
+
+// Función para probar la conexión explícitamente al arranque
+export async function testConnection() {
+  try {
+    const client = await pool.connect();
+    const result = await client.query('SELECT NOW()');
+    client.release();
+    console.log('🚀 Conexión exitosa a Supabase en el arranque:', result.rows[0].now);
+    return true;
+  } catch (err) {
+    console.error('❌ Error crítico al conectar con la base de datos en el arranque:', err.message);
+    return false;
+  }
+}
 
 export async function query(text, params) {
     const client = await pool.connect();
