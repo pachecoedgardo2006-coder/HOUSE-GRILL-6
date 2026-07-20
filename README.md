@@ -2,7 +2,7 @@
 
 House Grill 6 es un panel de control administrativo unificado y de alta eficiencia, diseñado exclusivamente para la gestión operativa interna de restaurantes de comidas rápidas que operan dentro de conjuntos residenciales.
 
-A diferencia de las aplicaciones comerciales tradicionales, este sistema centraliza el flujo logístico, financiero y de inventario desde una única interfaz de administrador, eliminando la necesidad de infraestructura pública o perfiles de clientes externos.
+A diferencia de las aplicaciones comerciales tradicionales, este sistema centraliza el flujo logístico, financiero y de inventario desde una única interfaz de administrador, eliminando la necesidad de infraestructura física local y operando bajo un entorno 100% cloud.
 
 ---
 
@@ -13,7 +13,7 @@ El proyecto está diseñado bajo una arquitectura de ****Monorepo**** limpia y d
 -   ****Frontend:**** Vite + JavaScript Vanilla (Manipulación modular estructurada del DOM mediante funciones nativas).
 -   ****Estilos:**** Tailwind CSS v4 con una estética unificada ****Urbana, Agresiva e Industrial de Parrilla al Carbón**** (Fondo oscuro extremo en `bg-slate-950`, bordes y separadores duros en `slate-900` / `border-slate-900`, acentuación cromática en Rojo Fuego `#e61919` y Mostaza Caliente `#ffb700`, tipografías pesadas y masivas `font-black` / `font-extrabold`, tracking cerrado/bloqueado `letter-spacing: -0.05em`, texto estrictamente en `uppercase` y acabados rectos `rounded-none`).
 -   ****HTTP Client:**** Axios (Configurado mediante una instancia centralizada orientada al prefijo `/api`).
--   ****Backend:**** Node.js, Express Framework, `cors` para gestión segura de políticas de acceso y `dotenv` para una configuración de entorno robusta.
+-   ****Backend:**** Node.js, Express Framework, cors para gestión estricta de políticas de acceso cruzado con Netlify, y dotenv con soporte de rutas absolutas para entornos monorepo.
 -   ****Auth & Seguridad:**** ****JSON Web Tokens**** (JWT) para gestión de sesiones, ****bcryptjs**** para el hashing de contraseñas de administrador, y middlewares de autorización para protección de rutas API
 -   ****Base de Datos****: Supabase (PostgreSQL) para escalabilidad, persistencia en la nube y gestión robusta de tipos de datos, reemplazando la arquitectura local anterior y manejo de tipos de datos en tiempo real mediante el driver `pg`.
 - ****Desarrollo:**** ****Concurrently**** para la gestión unificada de procesos en el monorepo.
@@ -22,41 +22,37 @@ El proyecto está diseñado bajo una arquitectura de ****Monorepo**** limpia y d
 ## 📂 Arquitectura del Sistema
 
 ```text
-dashboard-restaurante/
-├── .env                                   # Variables de entorno (Configuración sensible/Supabase)
+HOUSE-GRILL-6/
+├── .env                                   # Variables de entorno globales (Raíz)
+├── Dockerfile                             # Configuración de contenedor para despliegue en Render
 ├── backend/
 │   ├── src/
 │   │   ├── config/
-│   │   │   └── db.js                      # Conexión a Supabase (PostgreSQL) vía Pool
+│   │   │   └── db.js                      # Conexión a Supabase (Pool + SSL + IPv4 fija)[cite: 4]
 │   │   ├── controllers/                   # Lógica de negocio y gestión de peticiones
-│   │   │   ├── auth.controller.js         # Autenticación y firma de JWT (vía process.env)
+│   │   │   ├── auth.controller.js         # Autenticación y firma de JWT
 │   │   │   ├── estadisticas.controller.js 
 │   │   │   ├── historial.controller.js    
 │   │   │   ├── inventario.controller.js   
 │   │   │   └── pedidos.controller.js      # Operaciones críticas de cocina/reparto
 │   │   ├── middleware/
-│   │   │   └── authMiddleware.js          # Verificación JWT con clave secreta (vía process.env)
-│   │   └── routes/                        # Definición de endpoints y rutas de la API
+│   │   │   └── authMiddleware.js          # Verificación JWT con clave secreta
+│   │   └── routes/                        # Definición de endpoints de la API (/api)
 │   │       ├── estadisticas.routes.js     
 │   │       ├── historial.routes.js        
 │   │       ├── inventario.routes.js       
 │   │       └── pedidos.routes.js          
-│   ├── app.js                             # Configuración de Express y middlewares globales
-│   ├── agregar_admin_supabase.js          # Script para gestión de usuarios en Supabase
-│   └── index.js                           # Punto de entrada (Carga dotenv + arranque servidor)
+│   ├── app.js                             # Configuración de Express, CORS y enrutamiento[cite: 2]
+│   ├── agregar_admin_supabase.js          # Script auxiliar para población de admin[cite: 6]
+│   └── index.js                           # Punto de entrada (Healthcheck DB + arranque)[cite: 1, 4]
 │ 
 ├── frontend/
 │   ├── public/                            # Recursos estáticos globales
 │   ├── src/
 │   │   ├── components/                    # Componentes modulares reutilizables
 │   │   ├── services/                      
-│   │   │   └── api.js                     # Instancia centralizada de Axios
-│   │   ├── views/                         # Secciones estructuradas de la SPA
-│   │   │   ├── login/                     # Orquestador del portal de acceso seguro
-│   │   │   ├── estadisticas/              # Módulo de analítica y métricas
-│   │   │   ├── historial/                 # Historial de transacciones
-│   │   │   ├── inventario/                # Gestión de stock y productos
-│   │   │   └── pedidos/                   # Operación de pedidos en vivo
+│   │   │   └── api.js                     # Instancia centralizada de Axios apuntando a Render
+│   │   ├── views/                         # Secciones estructuradas de la SPA (Login, Pedidos, etc.)
 │   │   ├── main.js                        # Router centralizado (Hash-based) y orquestador
 │   │   └── style.css                      # Estilos globales y Tailwind CSS v4
 │   ├── index.html                         # Contenedor raíz de la aplicación
@@ -103,6 +99,6 @@ El proyecto utiliza un archivo `.env` en la raíz para gestionar credenciales se
 - `JWT_SECRET`: Clave secreta para la firma de tokens (debe ser una cadena larga y aleatoria).
 - `DATABASE_URL`: Cadena de conexión a tu base de datos Supabase (PostgreSQL).
 
-*Nota: Asegúrate de que el archivo `.env` esté incluido en tu `.gitignore` para evitar exponer información sensible.*
+*Nota: Asegúrate de que el archivo `.env` esté incluido en tu `.gitignore` para evitar exponer información sensible. Para entornos cloud como Render, asegúrate de configurar la DATABASE_URL apuntando al Transaction Pooler (puerto 6543) usando direccionamiento IPv4 para evitar bloqueos de red.*
 
 ---
