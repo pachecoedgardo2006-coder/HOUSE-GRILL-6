@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
     // VITE_API_URL debe estar definido en tu archivo .env del frontend
-    baseURL: 'https://house-grill-6.onrender.com' || 'http://localhost:3000/api',
+    baseURL: 'https://house-grill-6.onrender.com/api' || 'http://localhost:3000/api',
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json'
