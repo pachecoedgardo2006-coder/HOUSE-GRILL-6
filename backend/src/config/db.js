@@ -1,16 +1,21 @@
 import pkg from 'pg';
+import dotenv from 'dotenv';
+dotenv.config();
+
 const { Pool } = pkg;
 
 const connectionString = process.env.DATABASE_URL;
 
-// Debug: Esto imprimirá en los LOGS de Vercel si la variable llega vacía
 if (!connectionString) {
-  console.error('❌ ERROR: DATABASE_URL no está definida en las variables de entorno de Vercel');
+  console.error('❌ ERROR: DATABASE_URL no está definida en las variables de entorno');
 } else {
   console.log('✅ DATABASE_URL cargada correctamente');
 }
 
-console.log("URL de conexión detectada (sin contraseña):", connectionString.replace(/:[^:@]+@/, ':***@'));
+// Ocultar la contraseña al imprimir la URL por seguridad
+if (connectionString) {
+  console.log("URL de conexión detectada:", connectionString.replace(/:[^:@]+@/, ':***@'));
+}
 
 const pool = new Pool({
   connectionString: connectionString,
@@ -19,9 +24,6 @@ const pool = new Pool({
   }
 });
 
-// ... resto de tu código
-
-// Esta función permite realizar consultas desde tus controladores
 export async function query(text, params) {
     const client = await pool.connect();
     try {
