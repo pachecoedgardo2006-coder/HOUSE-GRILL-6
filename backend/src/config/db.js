@@ -1,28 +1,20 @@
 import pkg from 'pg';
 import dotenv from 'dotenv';
+import net from 'net';
 dotenv.config();
 
 const { Pool } = pkg;
-
 const connectionString = process.env.DATABASE_URL;
-
-if (!connectionString) {
-  console.error('❌ ERROR: DATABASE_URL no está definida en las variables de entorno');
-} else {
-  console.log('✅ DATABASE_URL cargada correctamente');
-}
-
-// Ocultar la contraseña al imprimir la URL por seguridad
-if (connectionString) {
-  console.log("URL de conexión detectada:", connectionString.replace(/:[^:@]+@/, ':***@'));
-}
 
 const pool = new Pool({
   connectionString: connectionString,
   ssl: {
     rejectUnauthorized: false
   },
-  family: 4
+  stream: (options) => {
+    options.family = 4;
+    return net.createConnection(options);
+  }
 });
 
 export async function query(text, params) {
