@@ -11,7 +11,7 @@ A diferencia de las aplicaciones comerciales tradicionales, este sistema central
 El sistema se encuentra completamente descentralizado y distribuido en servicios especializados en la nube para garantizar alta disponibilidad, velocidad y optimización de recursos:
 
 -   ****Frontend (Netlify):**** El cliente SPA está desplegado estáticamente en la infraestructura global de Netlify (`[https://housegrill6.netlify.app](https://housegrill6.netlify.app)`), permitiendo cargas ultrarrápidas y gestión de rutas basadas en Hash de manera fluida.
--   ****Backend (Render):**** El servidor monolítico basado en Node.js y Express corre en un contenedor web en la nube de Render (`[https://housegrill-6.onrender.com](https://housegrill-6.onrender.com)`), configurado con validación de conectividad al arranque (`SELECT NOW()`)y manejo seguro de variables de entorno.
+-   ****Backend (Render):**** El servidor monolítico basado en Node.js y Express corre en un contenedor web en la nube de Render (usando un contenedor de docker) (`[https://housegrill-6.onrender.com](https://housegrill-6.onrender.com)`), configurado con validación de conectividad al arranque (`SELECT NOW()`)y manejo seguro de variables de entorno.
 -   ****Base de Datos (Supabase / PostgreSQL):**** La persistencia de datos se aloja en los servidores cloud de Supabase. El backend se comunica de forma segura mediante conexiones cifradas SSLutilizando el puerto del ****Transaction Pooler (6543)**** y direccionamiento IP IPv4 fijo para garantizar compatibilidad con restricciones de red en contenedores cloud.
 
 ---

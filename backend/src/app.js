@@ -12,21 +12,24 @@ import { verificarToken } from './middleware/authMiddleware.js';
 
 const app = express();
 
-// Configuración de CORS
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://housegrill6.netlify.app');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  next();
-});
+// Lista de orígenes permitidos (desarrollo local y producción)
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://housegrill6.netlify.app'
+];
 
+// Configuración de CORS
 app.use(cors({
-  origin: 'https://housegrill6.netlify.app',
+  origin: function (origin, callback) {
+    // Permitir solicitudes sin origen (como Postman o solicitudes server-to-server) o si está en la lista permitida
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Bloqueado por política de CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
   credentials: true
 }));
 
